@@ -383,7 +383,7 @@ RAILS3PROFILE (?:\(Views: %{NUMBER:viewms}ms \| ActiveRecord: %{NUMBER:activerec
 
 RAILS3 %{RAILS3HEAD}(?:%{RPROCESSING})?(?<context>(?:%{DATA}\n)*)(?:%{RAILS3FOOT})?
 REDISTIMESTAMP %{MONTHDAY} %{MONTH} %{TIME}
-REDISLOG \[%{POSINT:pid}\] %{REDISTIMESTAMP:timestamp} \*
+REDISLOG \[%{POSINT:pid}\] %{REDISTIMESTAMP:timestamp} \* 
 REDISMONLOG %{NUMBER:timestamp} \[%{INT:database} %{IP:client}:%{NUMBER:port}\] "%{WORD:command}"\s?%{GREEDYDATA:params}
 RUBY_LOGLEVEL (?:DEBUG|FATAL|ERROR|WARN|INFO)
 RUBY_LOGGER [DFEWI], \[%{TIMESTAMP_ISO8601:timestamp} #%{POSINT:pid}\] *%{RUBY_LOGLEVEL:loglevel} -- +%{DATA:progname}: %{GREEDYDATA:message}

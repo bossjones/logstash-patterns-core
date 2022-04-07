@@ -397,36 +397,36 @@ UNIFI_CUSTOM_EVENT (wevent.ubnt_custom_event\(\): %{WORD:CUSTOM_UNFI_EVENT} %{WO
 UNSIGNED_INT [0-9]+
 ETHTYPE (?:[A-Fa-f0-9]{2}):(?:[A-Fa-f0-9]{2})
 ETHTYPE_DISCARD (?::[A-Fa-f0-9]{2})*
-NETFILTERMAC (?:%{MAC:destination.mac}:%{MAC:source.mac}:%{ETHTYPE:iptables.ether_type}?%{ETHTYPE_DISCARD}|%{MAC:destination.mac}%{ETHTYPE_DISCARD}:%{ETHTYPE:iptables.ether_type}?)
-IPTABLES_ETHERNET IN=%{DATA:iptables.input_device} OUT=%{DATA:iptables.output_device}?(?: MAC=%{NETFILTERMAC})?
-IPTABLES_PORT_PAIR SPT=%{UNSIGNED_INT:source.port:integer} DPT=%{UNSIGNED_INT:destination.port:integer}
+NETFILTERMAC (?:%{MAC:destination_mac}:%{MAC:source_mac}:%{ETHTYPE:iptables_ether_type}?%{ETHTYPE_DISCARD}|%{MAC:destination_mac}%{ETHTYPE_DISCARD}:%{ETHTYPE:iptables_ether_type}?)
+IPTABLES_ETHERNET IN=%{DATA:iptables_input_device} OUT=%{DATA:iptables_output_device}?(?: MAC=%{NETFILTERMAC})?
+IPTABLES_PORT_PAIR SPT=%{UNSIGNED_INT:source_port:integer} DPT=%{UNSIGNED_INT:destination_port:integer}
 IPTABLES_TCP_FLAGS ((?<= )(CWR|ECE|URG|ACK|PSH|RST|SYN|FIN))*
-IPTABLES_TCP_SEQ SEQ=%{UNSIGNED_INT:iptables.tcp.seq:integer} ACK=%{UNSIGNED_INT:iptables.tcp.ack:integer}
-IPTABLES_TCP_DETAILS (?:%{IPTABLES_TCP_SEQ} )?WINDOW=%{UNSIGNED_INT:iptables.tcp.window:integer} RES=0x%{BASE16NUM:iptables.tcp_reserved_bits} %{IPTABLES_TCP_FLAGS:iptables.tcp.flags}
-IPTABLES_INCOMPLETE_PACKET INCOMPLETE \\[%{UNSIGNED_INT:iptables.incomplete_bytes:integer} bytes\\]
-IPTABLES_UDP_DETAILS LEN=%{UNSIGNED_INT:iptables.udp.length:integer}
-IPTABLES_ICMP_EXTRA_ECHO ID=%{UNSIGNED_INT:iptables.icmp.id:integer} SEQ=%{UNSIGNED_INT:iptables.icmp.seq:integer}
-IPTABLES_ICMP_EXTRA_PARAM PARAMETER=%{UNSIGNED_INT:iptables.icmp.parameter:integer}
-IPTABLES_ICMP_EXTRA_REDIRECT GATEWAY=%{IP:iptables.icmp.redirect}
+IPTABLES_TCP_SEQ SEQ=%{UNSIGNED_INT:iptables_tcp_seq:integer} ACK=%{UNSIGNED_INT:iptables_tcp_ack:integer}
+IPTABLES_TCP_DETAILS (?:%{IPTABLES_TCP_SEQ} )?WINDOW=%{UNSIGNED_INT:iptables_tcp_window:integer} RES=0x%{BASE16NUM:iptables_tcp_reserved_bits} %{IPTABLES_TCP_FLAGS:iptables_tcp_flags}
+IPTABLES_INCOMPLETE_PACKET INCOMPLETE \\[%{UNSIGNED_INT:iptables_incomplete_bytes:integer} bytes\\]
+IPTABLES_UDP_DETAILS LEN=%{UNSIGNED_INT:iptables_udp_length:integer}
+IPTABLES_ICMP_EXTRA_ECHO ID=%{UNSIGNED_INT:iptables_icmp_id:integer} SEQ=%{UNSIGNED_INT:iptables_icmp_seq:integer}
+IPTABLES_ICMP_EXTRA_PARAM PARAMETER=%{UNSIGNED_INT:iptables_icmp_parameter:integer}
+IPTABLES_ICMP_EXTRA_REDIRECT GATEWAY=%{IP:iptables_icmp_redirect}
 IPTABLES_ICMP_EXTRA ( (?:%{IPTABLES_ICMP_EXTRA_ECHO}|%{IPTABLES_ICMP_EXTRA_PARAM}|%{IPTABLES_ICMP_EXTRA_REDIRECT}))*
-IPTABLES_ICMP_DETAILS TYPE=%{UNSIGNED_INT:iptables.icmp.type:integer} CODE=%{UNSIGNED_INT:iptables.icmp.code:integer}(( %{IPTABLES_INCOMPLETE_PACKET})|%{IPTABLES_ICMP_EXTRA})
-IPTABLES_PROTOCOL PROTO=(?<network.transport>[a-zA-Z0-9]+)
+IPTABLES_ICMP_DETAILS TYPE=%{UNSIGNED_INT:iptables_icmp_type:integer} CODE=%{UNSIGNED_INT:iptables_icmp_code:integer}(( %{IPTABLES_INCOMPLETE_PACKET})|%{IPTABLES_ICMP_EXTRA})
+IPTABLES_PROTOCOL PROTO=(?<network_transport>[a-zA-Z0-9]+)
 IPTABLES_IP_PAYLOAD %{IPTABLES_PROTOCOL}( %{IPTABLES_PORT_PAIR})?( (%{IPTABLES_TCP_DETAILS}|%{IPTABLES_UDP_DETAILS}|%{IPTABLES_ICMP_DETAILS}|%{IPTABLES_INCOMPLETE_PACKET}))?
 IPTABLES_IP_FRAGFLAG ((?<= )(CE|DF|MF))*
-IPTABLES_IP_START SRC=%{IPV4:source.ip} DST=%{IPV4:destination.ip} LEN=%{UNSIGNED_INT:iptables.length:integer} TOS=0x%{BASE16NUM:iptables.tos} PREC=0x%{BASE16NUM:iptables.precedence_bits} TTL=%{UNSIGNED_INT:iptables.ttl:integer} ID=%{UNSIGNED_INT:iptables.id:integer}(?: %{IPTABLES_IP_FRAGFLAG:iptables.fragment_flags})?(?: FRAG: %{UNSIGNED_INT:iptables.fragment_offset:integer})?
+IPTABLES_IP_START SRC=%{IPV4:source_ip} DST=%{IPV4:destination_ip} LEN=%{UNSIGNED_INT:iptables_length:integer} TOS=0x%{BASE16NUM:iptables_tos} PREC=0x%{BASE16NUM:iptables_precedence_bits} TTL=%{UNSIGNED_INT:iptables_ttl:integer} ID=%{UNSIGNED_INT:iptables_id:integer}(?: %{IPTABLES_IP_FRAGFLAG:iptables_fragment_flags})?(?: FRAG: %{UNSIGNED_INT:iptables_fragment_offset:integer})?
 IPTABLES_IP %{IPTABLES_IP_START} %{IPTABLES_IP_PAYLOAD}
-IPTABLES_IPV6_START SRC=%{IPV6:source.ip} DST=%{IPV6:destination.ip} LEN=%{UNSIGNED_INT:iptables.length:integer} TC=%{UNSIGNED_INT:iptables.tos} HOPLIMIT=%{UNSIGNED_INT:iptables.ttl:integer} FLOWLBL=%{UNSIGNED_INT:iptables.flow_label:integer}
+IPTABLES_IPV6_START SRC=%{IPV6:source_ip} DST=%{IPV6:destination_ip} LEN=%{UNSIGNED_INT:iptables_length:integer} TC=%{UNSIGNED_INT:iptables_tos} HOPLIMIT=%{UNSIGNED_INT:iptables_ttl:integer} FLOWLBL=%{UNSIGNED_INT:iptables_flow_label:integer}
 IPTABLES_IPV6 %{IPTABLES_IPV6_START} %{IPTABLES_IP_PAYLOAD}
 IPTABLES %{IPTABLES_ETHERNET} (:?%{IPTABLES_IP}|%{IPTABLES_IPV6})
 UBIQUITI_FIELD [^-\\]]*
 UBIQUITI_RULESET_NAME [^\\]]*
-UBIQUITI_LABEL %{UBIQUITI_RULESET_NAME:iptables.ubiquiti.rule_set}-%{UBIQUITI_FIELD:iptables.ubiquiti.rule_number}-%{UBIQUITI_FIELD:event.outcome}
+UBIQUITI_LABEL %{UBIQUITI_RULESET_NAME:iptables_ubiquiti_rule_set}-%{UBIQUITI_FIELD:iptables_ubiquiti_rule_number}-%{UBIQUITI_FIELD:event_outcome}
 UBIQUITI_FIELD_IPTABLES_RULE_SET [^-]*
 
-BOSS_UNIFI_IPTABLES_SECURITY_GATEWAY \A%{SYSLOGTIMESTAMP:timestamp_logged}%{SPACE}%{SYSLOGHOST:hostname}%{SPACE}%{WORD:programname}%{NOTSPACE}%{SPACE}\[%{WORD:iptables.interface}-%{WORD:iptables.rule_index}-%{UBIQUITI_FIELD:iptables.rule_action}\]%{UBIQUITI_FIELD_IPTABLES_RULE_SET:iptables.rule_set}
-BOSS_UNIFI_IPTABLES_LOG_RULES %{SYSLOGTIMESTAMP:timestamp_logged}%{SPACE}%{BACULA_DEVICE}%{SPACE}%{BACULA_JOB}%{NOTSPACE}%{SPACE}\[%{WORD:iptables.interface}-%{WORD:iptables.rule_index}-%{UBIQUITI_FIELD:iptables.rule_action}\]%{UBIQUITI_FIELD_IPTABLES_RULE_SET}
+BOSS_UNIFI_IPTABLES_SECURITY_GATEWAY \A%{SYSLOGTIMESTAMP:timestamp_logged}%{SPACE}%{SYSLOGHOST:hostname}%{SPACE}%{WORD:programname}%{NOTSPACE}%{SPACE}\[%{WORD:iptables_interface}-%{WORD:iptables_rule_index}-%{UBIQUITI_FIELD:iptables_rule_action}\]%{UBIQUITI_FIELD_IPTABLES_RULE_SET:iptables_rule_set}
+BOSS_UNIFI_IPTABLES_LOG_RULES %{SYSLOGTIMESTAMP:timestamp_logged}%{SPACE}%{BACULA_DEVICE}%{SPACE}%{BACULA_JOB}%{NOTSPACE}%{SPACE}\[%{WORD:iptables_interface}-%{WORD:iptables_rule_index}-%{UBIQUITI_FIELD:iptables_rule_action}\]%{UBIQUITI_FIELD_IPTABLES_RULE_SET}
 
-BOSSJONES_IPTABLES_IP_START SRC=%{IPV4:firewall.source.ip} DST=%{IPV4:firewall.destination.ip} LEN=%{UNSIGNED_INT:firewall.packet_length} TOS=0x%{BASE16NUM:firewall.tos} PREC=0x%{BASE16NUM:firewall.precidence_field} TTL=%{UNSIGNED_INT:firewall.ttl} ID=%{UNSIGNED_INT:firewall.id} %{GREEDYDATA:firewall.tcp_opts} PROTO=%{WORD:firewall.nf_protocol} SPT=%{INT:firewall.spt} DPT=%{INT:firewall.dtp} %{GREEDYDATA:firewall.tcp_opts}
+BOSSJONES_IPTABLES_IP_START SRC=%{IPV4:firewall_source_ip} DST=%{IPV4:firewall_destination_ip} LEN=%{UNSIGNED_INT:firewall_packet_length} TOS=0x%{BASE16NUM:firewall_tos} PREC=0x%{BASE16NUM:firewall_precidence_field} TTL=%{UNSIGNED_INT:firewall_ttl} ID=%{UNSIGNED_INT:firewall_id} %{GREEDYDATA:firewall_tcp_opts} PROTO=%{WORD:firewall_nf_protocol} SPT=%{INT:firewall_spt} DPT=%{INT:firewall_dtp} %{GREEDYDATA:firewall_tcp_opts}
 
 BOSSJONES_UNIFI %{SYSLOGTIMESTAMP:time} %{HOSTNAME:hostname}
 
@@ -436,13 +436,13 @@ BOSSJONES_UNIFI_PROCESS_NAME %{WORD:process_name}:
 
 BOSSJONES_UNIFI_SECURITYGATEWAY_KERNEL_START %{BOSSJONES_UNIFI} %{BOSSJONES_UNIFI_PROCESS_NAME}
 
-BOSSJONES_UNIFI_SECURITYGATEWAY_IDS_LOGS_START %{WORD:firewall.ids_block_type} BLOCK:\s+
+BOSSJONES_UNIFI_SECURITYGATEWAY_IDS_LOGS_START %{WORD:firewall_ids_block_type} BLOCK:\s+
 
-BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS \[%{WORD:firewall.interface}-%{WORD:firewall.rule_index}-%{WORD:firewall.rule_action}\]
+BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS \[%{WORD:firewall_interface}-%{WORD:firewall_rule_index}-%{WORD:firewall_rule_action}\]
 
-BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET IN=%{DATA:iptables.input_device} OUT=%{DATA:iptables.output_device}?(?: MAC=%{NETFILTERMAC:mac})?
+BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET IN=%{DATA:iptables_input_device} OUT=%{DATA:iptables_output_device}?(?: MAC=%{NETFILTERMAC:mac})?
 
-BOSSJONES_IPTABLES_IP_START SRC=%{IPV4:firewall.source.ip} DST=%{IPV4:firewall.destination.ip} LEN=%{UNSIGNED_INT:firewall.packet_length} TOS=0x%{BASE16NUM:firewall.tos} PREC=0x%{BASE16NUM:firewall.precidence_field} TTL=%{UNSIGNED_INT:firewall.ttl} ID=%{UNSIGNED_INT:firewall.id}(?:%{SPACE})?(?:%{WORD:firewall.dont_fragment})?(?:%{SPACE})?PROTO=%{WORD:firewall.nf_protocol} SPT=%{INT:firewall.spt} DPT=%{INT:firewall.dtp} %{GREEDYDATA:firewall.tcp_opts}
+BOSSJONES_IPTABLES_IP_START SRC=%{IPV4:firewall_source_ip} DST=%{IPV4:firewall_destination_ip} LEN=%{UNSIGNED_INT:firewall_packet_length} TOS=0x%{BASE16NUM:firewall_tos} PREC=0x%{BASE16NUM:firewall_precidence_field} TTL=%{UNSIGNED_INT:firewall_ttl} ID=%{UNSIGNED_INT:firewall_id}(?:%{SPACE})?(?:%{WORD:firewall_dont_fragment})?(?:%{SPACE})?PROTO=%{WORD:firewall_nf_protocol} SPT=%{INT:firewall_spt} DPT=%{INT:firewall_dtp} %{GREEDYDATA:firewall_tcp_opts}
 
 BOSS_UNSIGNED_INT [0-9]+
 BOSS_IPTABLES_ETHERNET IN=%{WORD:in_device}? OUT=%{WORD:out_device}?(?: MAC=%{NETFILTERMAC:mac})?

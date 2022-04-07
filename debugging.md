@@ -31,3 +31,83 @@ BOSS_UNIFI_IPTABLES_LOG_RULES %{SYSLOGTIMESTAMP:timestamp_logged}%{SPACE}%{BACUL
 # given: Apr  7 18:56:11 ubnt kernel: [LAN_LOCAL-default-A]IN=eth0 OUT= MAC=64:ad:d9:1b:b8:09:68:c7:9n:23:fa:f8:09:00 SRC=192.168.1.18 DST=192.168.1.1 LEN=63 TOS=0x00 PREC=0x00 TTL=64 ID=46017 DF PROTO=UDP SPT=60561 DPT=53 LEN=43
 # Building out pattern
 ^(?<month>(\b(?:[Jj]an(?:uary|uar)?|[Ff]eb(?:ruary|ruar)?|[Mm](?:a|ä)?r(?:ch|z)?|[Aa]pr(?:il)?|[Mm]a(?:y|i)?|[Jj]un(?:e|i)?|[Jj]ul(?:y)?|[Aa]ug(?:ust)?|[Ss]ep(?:tember)?|[Oo](?:c|k)?t(?:ober)?|[Nn]ov(?:ember)?|[Dd]e(?:c|z)(?:ember)?)\b))
+
+
+# Expanded
+
+```
+<filter unifi.syslog.**>
+      @type parser
+      @id iptables_security_gateway_logs
+      key_name message
+      reserve_data true
+      reserve_time true
+      # remove_key_name_field true
+      <parse>
+        @type grok
+        custom_pattern_path /grok.d
+        grok_failure_key grokfailure
+        # WITHOUT IDS BLOCK
+
+        <grok>
+          pattern (?:%{SPACE})?%{BOSSJONES_UNIFI_PROCESS_NAME}(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})?(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET}|%{BOSSJONES_IPTABLES_IP_START})? (?:%{BOSSJONES_IPTABLES_IP_START})?
+        </grok>
+        # IDS BLOCK
+        # EG. Apr 17 21:10:16 UniFiSecurityGateway3P kernel: ALIEN BLOCK: IN=eth0 OUT=eth1 MAC=ff:ff:f2:fe:f0:fc:00:0f:29:08:ff:f2:08:00 SRC=46.246.123.145 DST=192.168.1.24 LEN=29 TOS=0x00 PREC=0x00 TTL=49 ID=4452 DF PROTO=UDP SPT=8888 DPT=60156 LEN=9
+        <grok>
+          pattern (?:%{SPACE})?%{BOSSJONES_UNIFI_PROCESS_NAME}(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})?%{BOSSJONES_UNIFI_SECURITYGATEWAY_IDS_LOGS_START}(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})?(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET}|%{BOSSJONES_IPTABLES_IP_START})? (?:%{BOSSJONES_IPTABLES_IP_START})?
+        </grok>
+        # IN= then SRC=
+        # EG. kernel: [LAN_LOCAL-default-A]IN=eth1 OUT= MAC=ff:ff:f2:fe:f0:fc:00:0f:29:08:ff:f2:08:00 SRC=192.168.1.172 DST=192.168.1.1 LEN=119 TOS=0x00 PREC=0x00 TTL=63 ID=21542 DF PROTO=UDP SPT=5432 DPT=53 LEN=99
+        <grok>
+          pattern (?:%{SPACE})?%{BOSSJONES_UNIFI_PROCESS_NAME}(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})?(?:%{SPACE})?%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET} (?:%{BOSSJONES_IPTABLES_IP_START})?
+        </grok>
+        <grok>
+          pattern %{GREEDYDATA:raw_log}
+        </grok>
+      </parse>
+    </filter>
+```
+
+## WITHOUT IDS BLOCK
+
+```
+# grok
+
+^(?P<month>(\b(?:[Jj]an(?:uary|uar)?|[Ff]eb(?:ruary|ruar)?|[Mm](?:a|ä)?r(?:ch|z)?|[Aa]pr(?:il)?|[Mm]a(?:y|i)?|[Jj]un(?:e|i)?|[Jj]ul(?:y)?|[Aa]ug(?:ust)?|[Ss]ep(?:tember)?|[Oo](?:c|k)?t(?:ober)?|[Nn]ov(?:ember)?|[Dd]e(?:c|z)(?:ember)?)\b))(\s*)(?P<daynum>(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])) (?P<time>((?!<[0-9])((?:2[0123]|[01]?[0-9])):((?:[0-5][0-9]))(?::((?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)))(?![0-9])))(\s*)(?P<hostname>(\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\.?|\b)))(\s*)(?:%{SPACE})?%{BOSSJONES_UNIFI_PROCESS_NAME}(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS})?(?:%{SPACE})?(?:%{BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET}|%{BOSSJONES_IPTABLES_IP_START})? (?:%{BOSSJONES_IPTABLES_IP_START})?
+```
+
+```
+^(?P<month>(\b(?:[Jj]an(?:uary|uar)?|[Ff]eb(?:ruary|ruar)?|[Mm](?:a|ä)?r(?:ch|z)?|[Aa]pr(?:il)?|[Mm]a(?:y|i)?|[Jj]un(?:e|i)?|[Jj]ul(?:y)?|[Aa]ug(?:ust)?|[Ss]ep(?:tember)?|[Oo](?:c|k)?t(?:ober)?|[Nn]ov(?:ember)?|[Dd]e(?:c|z)(?:ember)?)\b))(\s*)(?P<daynum>(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])) (?P<time>((?!<[0-9])((?:2[0123]|[01]?[0-9])):((?:[0-5][0-9]))(?::((?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)))(?![0-9])))(\s*)(?P<hostname>(\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\.?|\b)))(\s*)(?:(\s*))?((?P<process_name>\b\w+\b):)(?:(\s*))?(?:(\[(?P<firewall_interface>\b\w+\b)-(?P<firewall_rule_index>\b\w+\b)-(?P<firewall_rule_action>\b\w+\b)\]))(?:(\[(?P<firewall_interface>\b\w+\b)-(?P<firewall_rule_index>\b\w+\b)-(?P<firewall_rule_action>\b\w+\b)\]))?(?:(\s*))?(?:(IN=(?P<iptables_input_device>.*?) OUT=(?P<iptables_output_device>.*?)?(?: MAC=(?P<mac>(?:(?P<destination_mac>(?:((?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4}))|((?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}))|((?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})))):(?P<source_mac>(?:((?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4}))|((?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}))|((?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})))):(?P<iptables_ether_type>(?:[A-Fa-f0-9]{2}):(?:[A-Fa-f0-9]{2}))?((?::[A-Fa-f0-9]{2})*)|(?P<destination_mac>(?:((?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4}))|((?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}))|((?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}))))((?::[A-Fa-f0-9]{2})*):(?P<iptables_ether_type>(?:[A-Fa-f0-9]{2}):(?:[A-Fa-f0-9]{2}))?)))?)|(SRC=(?P<firewall_source_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) DST=(?P<firewall_destination_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) LEN=(?P<firewall_packet_length>[0-9]+) TOS=0x(?P<firewall_tos>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) PREC=0x(?P<firewall_precidence_field>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) TTL=(?P<firewall_ttl>[0-9]+) ID=(?P<firewall_id>[0-9]+)(?:(\s*))?(?:(?P<firewall_dont_fragment>\b\w+\b))?(?:(\s*))?PROTO=(?P<firewall_nf_protocol>\b\w+\b) SPT=(?P<firewall_spt>(?:[+-]?(?:[0-9]+))) DPT=(?P<firewall_dtp>(?:[+-]?(?:[0-9]+))) (?P<firewall_tcp_opts>.*)))? (?:(SRC=(?P<firewall_source_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) DST=(?P<firewall_destination_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) LEN=(?P<firewall_packet_length>[0-9]+) TOS=0x(?P<firewall_tos>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) PREC=0x(?P<firewall_precidence_field>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) TTL=(?P<firewall_ttl>[0-9]+) ID=(?P<firewall_id>[0-9]+)(?:(\s*))?(?:(?P<firewall_dont_fragment>\b\w+\b))?(?:(\s*))?PROTO=(?P<firewall_nf_protocol>\b\w+\b) SPT=(?P<firewall_spt>(?:[+-]?(?:[0-9]+))) DPT=(?P<firewall_dtp>(?:[+-]?(?:[0-9]+))) (?P<firewall_tcp_opts>.*)))?
+```
+
+## IDS BLOCK
+
+`# EG. Apr 17 21:10:16 UniFiSecurityGateway3P kernel: ALIEN BLOCK: IN=eth0 OUT=eth1 MAC=ff:ff:f2:fe:f0:fc:00:0f:29:08:ff:f2:08:00 SRC=46.246.123.145 DST=192.168.1.24 LEN=29 TOS=0x00 PREC=0x00 TTL=49 ID=4452 DF PROTO=UDP SPT=8888 DPT=60156 LEN=9`
+
+```
+(?:(\s*))?((?P<process_name>\b\w+\b):)(?:(\s*))?(?:(\[(?P<firewall_interface>\b\w+\b)-(?P<firewall_rule_index>\b\w+\b)-(?P<firewall_rule_action>\b\w+\b)\]))?((?P<firewall_ids_block_type>\b\w+\b) BLOCK:\s+)(?:(\[(?P<firewall_interface>\b\w+\b)-(?P<firewall_rule_index>\b\w+\b)-(?P<firewall_rule_action>\b\w+\b)\]))?(?:(\s*))?(?:(IN=(?P<iptables_input_device>.*?) OUT=(?P<iptables_output_device>.*?)?(?: MAC=(?P<mac>(?:(?P<destination_mac>(?:((?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4}))|((?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}))|((?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})))):(?P<source_mac>(?:((?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4}))|((?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}))|((?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2})))):(?P<iptables_ether_type>(?:[A-Fa-f0-9]{2}):(?:[A-Fa-f0-9]{2}))?((?::[A-Fa-f0-9]{2})*)|(?P<destination_mac>(?:((?:(?:[A-Fa-f0-9]{4}\.){2}[A-Fa-f0-9]{4}))|((?:(?:[A-Fa-f0-9]{2}-){5}[A-Fa-f0-9]{2}))|((?:(?:[A-Fa-f0-9]{2}:){5}[A-Fa-f0-9]{2}))))((?::[A-Fa-f0-9]{2})*):(?P<iptables_ether_type>(?:[A-Fa-f0-9]{2}):(?:[A-Fa-f0-9]{2}))?)))?)|(SRC=(?P<firewall_source_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) DST=(?P<firewall_destination_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) LEN=(?P<firewall_packet_length>[0-9]+) TOS=0x(?P<firewall_tos>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) PREC=0x(?P<firewall_precidence_field>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) TTL=(?P<firewall_ttl>[0-9]+) ID=(?P<firewall_id>[0-9]+)(?:(\s*))?(?:(?P<firewall_dont_fragment>\b\w+\b))?(?:(\s*))?PROTO=(?P<firewall_nf_protocol>\b\w+\b) SPT=(?P<firewall_spt>(?:[+-]?(?:[0-9]+))) DPT=(?P<firewall_dtp>(?:[+-]?(?:[0-9]+))) (?P<firewall_tcp_opts>.*)))? (?:(SRC=(?P<firewall_source_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) DST=(?P<firewall_destination_ip>(?<![0-9])(?:(?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])[.](?:[0-1]?[0-9]{1,2}|2[0-4][0-9]|25[0-5]))(?![0-9])) LEN=(?P<firewall_packet_length>[0-9]+) TOS=0x(?P<firewall_tos>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) PREC=0x(?P<firewall_precidence_field>(?<![0-9A-Fa-f])(?:[+-]?(?:0x)?(?:[0-9A-Fa-f]+))) TTL=(?P<firewall_ttl>[0-9]+) ID=(?P<firewall_id>[0-9]+)(?:(\s*))?(?:(?P<firewall_dont_fragment>\b\w+\b))?(?:(\s*))?PROTO=(?P<firewall_nf_protocol>\b\w+\b) SPT=(?P<firewall_spt>(?:[+-]?(?:[0-9]+))) DPT=(?P<firewall_dtp>(?:[+-]?(?:[0-9]+))) (?P<firewall_tcp_opts>.*)))?
+```
+
+## IN= then SRC= block
+
+```
+# IN= then SRC=
+# EG. kernel: [LAN_LOCAL-default-A]IN=eth1 OUT= MAC=ff:ff:f2:fe:f0:fc:00:0f:29:08:ff:f2:08:00 SRC=192.168.1.172 DST=192.168.1.1 LEN=119 TOS=0x00 PREC=0x00 TTL=63 ID=21542 DF PROTO=UDP SPT=5432 DPT=53 LEN=99
+```
+
+```
+(?:(\s*))?((?P<process_name>\b\w+\b):)(?:(\s*))?(?:(\[%{WORD:firewall_interface}-%{WORD:firewall_rule_index}-%{WORD:firewall_rule_action}\]))?(?:(\[%{WORD:firewall_interface}-%{WORD:firewall_rule_index}-%{WORD:firewall_rule_action}\]))?(?:(\s*))?(IN=%{DATA:iptables_input_device} OUT=%{DATA:iptables_output_device}?(?: MAC=(?P<mac>(?:%{MAC:destination_mac}:%{MAC:source_mac}:%{ETHTYPE:iptables_ether_type}?((?::[A-Fa-f0-9]{2})*)|%{MAC:destination_mac}((?::[A-Fa-f0-9]{2})*):%{ETHTYPE:iptables_ether_type}?)))?) (?:(SRC=%{IPV4:firewall_source_ip} DST=%{IPV4:firewall_destination_ip} LEN=%{UNSIGNED_INT:firewall_packet_length} TOS=0x%{BASE16NUM:firewall_tos} PREC=0x%{BASE16NUM:firewall_precidence_field} TTL=%{UNSIGNED_INT:firewall_ttl} ID=%{UNSIGNED_INT:firewall_id}(?:(\s*))?(?:%{WORD:firewall_dont_fragment})?(?:(\s*))?PROTO=%{WORD:firewall_nf_protocol} SPT=%{INT:firewall_spt} DPT=%{INT:firewall_dtp} %{GREEDYDATA:firewall_tcp_opts}))?
+```
+
+
+## syslog date time and hostname
+
+
+```
+# eg
+
+Apr  7 18:56:11 ubnt kernel: [LAN_LOCAL-default-A]IN=eth0 OUT= MAC=74:ac:b9:1a:a8:09:68:d7:9a:23:fd:f7:08:00 SRC=192.168.1.150 DST=192.168.1.1 LEN=63 TOS=0x00 PREC=0x00 TTL=64 ID=46017 DF PROTO=UDP SPT=60561 DPT=53 LEN=43
+```
+
+^(?P<month>(\b(?:[Jj]an(?:uary|uar)?|[Ff]eb(?:ruary|ruar)?|[Mm](?:a|ä)?r(?:ch|z)?|[Aa]pr(?:il)?|[Mm]a(?:y|i)?|[Jj]un(?:e|i)?|[Jj]ul(?:y)?|[Aa]ug(?:ust)?|[Ss]ep(?:tember)?|[Oo](?:c|k)?t(?:ober)?|[Nn]ov(?:ember)?|[Dd]e(?:c|z)(?:ember)?)\b))(\s*)(?P<daynum>(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])) (?P<time>((?!<[0-9])((?:2[0123]|[01]?[0-9])):((?:[0-5][0-9]))(?::((?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)))(?![0-9])))(\s*)(?P<hostname>(\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\.?|\b)))(\s*)

@@ -440,7 +440,7 @@ BOSSJONES_UNIFI_SECURITYGATEWAY_IDS_LOGS_START %{WORD:firewall_ids_block_type} B
 
 BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_LOGS \[%{WORD:firewall_interface}-%{WORD:firewall_rule_index}-%{WORD:firewall_rule_action}\]
 
-BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET IN=%{DATA:iptables_input_device} OUT=%{DATA:iptables_output_device}?(?: MAC=%{NETFILTERMAC:mac})?
+BOSSJONES_UNIFI_SECURITYGATEWAY_FIREWALL_IPTABLES_ETHERNET IN=%{DATA:iface} OUT=%{DATA:oface}?(?: MAC=%{NETFILTERMAC:mac})?
 
 BOSSJONES_IPTABLES_IP_START SRC=%{IPV4:firewall_source_ip} DST=%{IPV4:firewall_destination_ip} LEN=%{UNSIGNED_INT:firewall_packet_length} TOS=0x%{BASE16NUM:firewall_tos} PREC=0x%{BASE16NUM:firewall_precidence_field} TTL=%{UNSIGNED_INT:firewall_ttl} ID=%{UNSIGNED_INT:firewall_id}(?:%{SPACE})?(?:%{WORD:firewall_dont_fragment})?(?:%{SPACE})?PROTO=%{WORD:firewall_nf_protocol} SPT=%{INT:firewall_spt} DPT=%{INT:firewall_dtp} %{GREEDYDATA:firewall_tcp_opts}
 

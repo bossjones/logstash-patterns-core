@@ -23,7 +23,7 @@ def dump_regex(expression, patterns_dir):
     grok = Grok(pattern, custom_patterns_dir=patterns_dir)
     # print(f"{grok.regex_obj.pattern}")
     print(f"{grok.regex_obj.pattern}")
-    
+
 def convert(expression, patterns):
     groks = re.compile('%{[^}]*}')
 
@@ -62,6 +62,7 @@ def convert(expression, patterns):
 
 
 if __name__ == '__main__':
+    # pip install better_exceptions bpython rich pygrok
     # grok-to-regex.py "%{HOSTPORT}" -d patterns/
     # (SRC=%{IPV4:firewall.source.ip} DST=%{IPV4:firewall.destination.ip} LEN=%{UNSIGNED_INT:firewall.packet_length} TOS=0x%{BASE16NUM:firewall.tos} PREC=0x%{BASE16NUM:firewall.precidence_field} TTL=%{UNSIGNED_INT:firewall.ttl} ID=%{UNSIGNED_INT:firewall.id}(?:(\s*))?(?:%{WORD:firewall.dont_fragment})?(?:(\s*))?PROTO=%{WORD:firewall.nf_protocol} SPT=%{INT:firewall.spt} DPT=%{INT:firewall.dtp} %{GREEDYDATA:firewall.tcp_opts})
     #  ./grok-to-regex.py "%{BOSSJONES_IPTABLES_IP_START}"

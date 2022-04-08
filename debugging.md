@@ -111,3 +111,43 @@ Apr  7 18:56:11 ubnt kernel: [LAN_LOCAL-default-A]IN=eth0 OUT= MAC=74:ac:b9:1a:a
 ```
 
 ^(?P<month>(\b(?:[Jj]an(?:uary|uar)?|[Ff]eb(?:ruary|ruar)?|[Mm](?:a|ä)?r(?:ch|z)?|[Aa]pr(?:il)?|[Mm]a(?:y|i)?|[Jj]un(?:e|i)?|[Jj]ul(?:y)?|[Aa]ug(?:ust)?|[Ss]ep(?:tember)?|[Oo](?:c|k)?t(?:ober)?|[Nn]ov(?:ember)?|[Dd]e(?:c|z)(?:ember)?)\b))(\s*)(?P<daynum>(?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])) (?P<time>((?!<[0-9])((?:2[0123]|[01]?[0-9])):((?:[0-5][0-9]))(?::((?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)))(?![0-9])))(\s*)(?P<hostname>(\b(?:[0-9A-Za-z][0-9A-Za-z-]{0,62})(?:\.(?:[0-9A-Za-z][0-9A-Za-z-]{0,62}))*(\.?|\b)))(\s*)
+
+
+# loki read json logs from fluentd
+
+```
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{DATE_US}"
+(((?:0?[1-9]|1[0-2]))[/-]((?:(?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9]))[/-]((?>\d\d){1,2}))
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{DATESTAMP}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{TIMESTAMP_ISO8601}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{YEAR}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{MONTHNUM}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{MONTHDAY}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{TIME}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ ./grok-to-regex.py "%{ISO8601_TIMEZONE}" | pbcopy
+
+~/dev/bossjones/logstash-patterns-core main*
+❯ code ../docker-compose-prometheus
+
+~/dev/bossjones/logstash-patterns-core main*
+❯
+
+# debug perl issues using this repo:
+https://github.com/vjeantet/grok/blob/master/patterns/grok-patterns
+```
